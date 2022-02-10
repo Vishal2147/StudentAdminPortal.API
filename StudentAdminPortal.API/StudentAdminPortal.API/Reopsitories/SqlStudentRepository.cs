@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,10 +18,19 @@ namespace StudentAdminPortal.API.Reopsitories
             _context = context;
         }
 
+        
         public async Task<List<Student>> GetStudentsAsync()
         {
             return await _context.Student.Include(nameof(Gender)).Include(nameof(Address)).ToListAsync(); // gives list of students from db & include Navigation property
 
         }
+
+        public async Task<Student> GetStudentAsync(Guid studentId)
+        {
+            return await _context.Student.Include(nameof(Gender)).Include(nameof(Address))
+                .FirstOrDefaultAsync(x => x.Id==studentId);
+        }
+
+
     }
 }
