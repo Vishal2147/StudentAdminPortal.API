@@ -10,7 +10,13 @@ namespace StudentAdminPortal.API.Reopsitories
         Task<List<Student>> GetStudentsAsync();
         Task<Student> GetStudentAsync(Guid studentId);
 
+        Task<List<Gender>> GetGenderAsync();
 
+        Task<bool> Exists(Guid studentId);
+
+       Task<Student> UpdateStudentMethod(Guid studentId, Student request);
+
+       Task<Student> DeleteStudent(Guid studentId);
     }
 
 }

@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Routing.Constraints;
 using StudentAdminPortal.API.DomainModels;
+using StudentAdminPortal.API.Profiles.AfterMaps;
 using DataModels=  StudentAdminPortal.API.DataModels;  // to differentiate b/w Domain and Data models
 
 
@@ -18,6 +20,8 @@ namespace StudentAdminPortal.API.Profiles
 
             CreateMap<DataModels.Address, Address>().ReverseMap();
 
+            CreateMap<UpdateStudentRequest, DataModels.Student>()
+                .AfterMap<UpdateStudentRequestAfterMap>();
 
         }
     }

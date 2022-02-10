@@ -88,5 +88,48 @@ namespace StudentAdminPortal.API.Controllers
             return Ok(_mapper.Map<Student>(student));    // map domain model to student model
         }
 
+
+
+        //put Update API
+
+        [HttpPut]
+        [Route("[controller]/{studentId:guid}")]
+        public async Task<IActionResult> UpdateStudentAsync([FromRoute] Guid studentId ,[FromBody] UpdateStudentRequest request)
+        {
+
+            if (await _studentRepository.Exists(studentId))
+            {
+                //update details
+
+                var updatedStudent = await _studentRepository.UpdateStudentMethod(studentId,_mapper.Map<DataModels.Student>(request)); // map request to data models student
+
+                if (updatedStudent != null)
+                {
+                    return Ok(_mapper.Map<DomainModels.Student>(updatedStudent));
+                }
+            }
+
+
+            return NotFound();
+        }
+
+        [HttpDelete]
+        [Route("[controller]/{studentId:guid}")]
+
+        public async Task<IActionResult> DeleteStudentAsync([FromRoute] Guid studentId)
+        {
+            if (await _studentRepository.Exists(studentId))
+            {
+               var student= await _studentRepository.DeleteStudent(studentId);
+
+               return Ok(_mapper.Map<Student>(student));
+            }
+
+            return NotFound();
+        }
     }
+
+
+   
 }
+
