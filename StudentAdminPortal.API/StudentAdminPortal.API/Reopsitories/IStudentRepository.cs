@@ -17,6 +17,8 @@ namespace StudentAdminPortal.API.Reopsitories
        Task<Student> UpdateStudentMethod(Guid studentId, Student request);
 
        Task<Student> DeleteStudent(Guid studentId);
+
+       Task<Student> AddStudentAsync(Student student);
     }
 
 }
