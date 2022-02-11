@@ -19,6 +19,8 @@ namespace StudentAdminPortal.API.Reopsitories
        Task<Student> DeleteStudent(Guid studentId);
 
        Task<Student> AddStudentAsync(Student student);
+
+       Task<bool> UpdateProfileImage(Guid studentId, string profileImageUrl);
     }
 
 }

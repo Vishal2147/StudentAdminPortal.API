@@ -3,35 +3,40 @@ using Microsoft.AspNetCore.Mvc;
 using StudentAdminPortal.API.DomainModels;
 using StudentAdminPortal.API.Reopsitories;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 
 namespace StudentAdminPortal.API.Controllers
 {
 
     [ApiController]
-    
+
     public class StudentController : Controller
     {
         internal readonly IStudentRepository _studentRepository;
         private readonly IMapper _mapper;
+        private readonly IImageRespository _imageRepository;
 
-        public StudentController(IStudentRepository studentRepository, IMapper mapper)      // need to inject studentRepository
+        public StudentController(IStudentRepository studentRepository,
+            IMapper mapper,IImageRespository imageRepository) // need to inject studentRepository
         {
             _studentRepository = studentRepository;
             _mapper = mapper;
-        }                    
+            _imageRepository = imageRepository;
+        }
 
 
         [HttpGet]
         [Route("[controller]")]
-        public async  Task<IActionResult> GetAllStudents()
+        public async Task<IActionResult> GetAllStudents()
         {
             /*return Ok(_studentRepository.GetStudents());*/
             // return from domain model now instead of datamodel
 
-            var students = await  _studentRepository.GetStudentsAsync();
-            return Ok(_mapper.Map<List<Student>>(students));       // list<student> is domain model student
+            var students = await _studentRepository.GetStudentsAsync();
+            return Ok(_mapper.Map<List<Student>>(students)); // list<student> is domain model student
 
             /*Without AutoMapper
              
@@ -70,7 +75,7 @@ namespace StudentAdminPortal.API.Controllers
 
 
         [HttpGet]
-        [Route("[controller]/{studentId:guid}") ,ActionName("GetStudentAsync")]
+        [Route("[controller]/{studentId:guid}"), ActionName("GetStudentAsync")]
 
         public async Task<IActionResult> GetStudentAsync([FromRoute] Guid studentId)
         {
@@ -85,7 +90,7 @@ namespace StudentAdminPortal.API.Controllers
                 return NotFound();
             }
 
-            return Ok(_mapper.Map<Student>(student));    // map domain model to student model
+            return Ok(_mapper.Map<Student>(student)); // map domain model to student model
         }
 
 
@@ -94,14 +99,17 @@ namespace StudentAdminPortal.API.Controllers
 
         [HttpPut]
         [Route("[controller]/{studentId:guid}")]
-        public async Task<IActionResult> UpdateStudentAsync([FromRoute] Guid studentId ,[FromBody] UpdateStudentRequest request)
+        public async Task<IActionResult> UpdateStudentAsync([FromRoute] Guid studentId,
+            [FromBody] UpdateStudentRequest request)
         {
 
             if (await _studentRepository.Exists(studentId))
             {
                 //update details
 
-                var updatedStudent = await _studentRepository.UpdateStudentMethod(studentId,_mapper.Map<DataModels.Student>(request)); // map request to data models student
+                var updatedStudent =
+                    await _studentRepository.UpdateStudentMethod(studentId,
+                        _mapper.Map<DataModels.Student>(request)); // map request to data models student
 
                 if (updatedStudent != null)
                 {
@@ -120,9 +128,9 @@ namespace StudentAdminPortal.API.Controllers
         {
             if (await _studentRepository.Exists(studentId))
             {
-               var student= await _studentRepository.DeleteStudent(studentId);
+                var student = await _studentRepository.DeleteStudent(studentId);
 
-               return Ok(_mapper.Map<Student>(student));
+                return Ok(_mapper.Map<Student>(student));
             }
 
             return NotFound();
@@ -133,18 +141,44 @@ namespace StudentAdminPortal.API.Controllers
         [Route("[controller]/Add")]
         public async Task<IActionResult> AddStudentAsync([FromBody] AddStudentRequest request)
         {
-           var newStudent=await _studentRepository.AddStudentAsync(_mapper.Map<DataModels.Student>(request));
+            var newStudent = await _studentRepository.AddStudentAsync(_mapper.Map<DataModels.Student>(request));
 
-           /*return Ok(newStudent);*/
+            /*return Ok(newStudent);*/
 
-           return CreatedAtAction(nameof(GetStudentAsync), new {studentId = newStudent.Id},
-               _mapper.Map<Student>(newStudent));
+            return CreatedAtAction(nameof(GetStudentAsync), new {studentId = newStudent.Id},
+                _mapper.Map<Student>(newStudent));
 
         }
 
+          
+        //Image Upload api
 
+        [HttpPost]
+        [Route("[controller]/{studentId:guid}/upload-image")]
+        public async Task<IActionResult> UploadImage([FromRoute] Guid studentId, IFormFile profileImage)
+        {
+            //check if student exists
+            if (await _studentRepository.Exists(studentId))
+            {
+                //upload the image to local storage
+                var fileName = Guid.NewGuid() + Path.GetExtension(profileImage.FileName);
+                
+                var fileImagePath=  await _imageRepository.Upload(profileImage, fileName);
+
+
+                //update the profile image path in the database
+
+              if( await  _studentRepository.UpdateProfileImage(studentId, fileImagePath))
+              {
+                  return Ok(fileImagePath);
+              }
+
+              return StatusCode(StatusCodes.Status500InternalServerError, "Error uploading image");
+            }
+
+            return NotFound();
+        }
     }
-
 
 
 

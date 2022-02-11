@@ -9,9 +9,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using StudentAdminPortal.API.DataModels;
 using StudentAdminPortal.API.Reopsitories;
 
@@ -43,6 +45,8 @@ namespace StudentAdminPortal.API
 
             services.AddScoped<IStudentRepository, SqlStudentRepository>();   // when use IstudentRepo then inject  SqlStudentRepo
 
+            services.AddScoped<IImageRespository, LocalStorageImageRepository>();
+
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -62,7 +66,12 @@ namespace StudentAdminPortal.API
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "StudentAdminPortal.API v1"));
             }
 
-            app.UseHttpsRedirection();
+            app.UseHttpsRedirection();;
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(env.ContentRootPath,"Resources")),
+                RequestPath = "Resources"
+            });
 
             app.UseRouting();
 
