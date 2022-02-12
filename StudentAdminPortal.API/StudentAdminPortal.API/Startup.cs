@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using StudentAdminPortal.API.DataModels;
@@ -48,6 +49,8 @@ namespace StudentAdminPortal.API
             services.AddScoped<IImageRespository, LocalStorageImageRepository>();
 
             services.AddControllers();
+            services.AddFluentValidation(fv=> fv.RegisterValidatorsFromAssemblyContaining<Startup>());   //server side validation
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "StudentAdminPortal.API", Version = "v1" });
@@ -70,7 +73,7 @@ namespace StudentAdminPortal.API
             app.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = new PhysicalFileProvider(Path.Combine(env.ContentRootPath,"Resources")),
-                RequestPath = "Resources"
+                RequestPath = "/Resources"
             });
 
             app.UseRouting();

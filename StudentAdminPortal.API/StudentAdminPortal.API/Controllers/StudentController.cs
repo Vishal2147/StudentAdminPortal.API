@@ -157,26 +157,46 @@ namespace StudentAdminPortal.API.Controllers
         [Route("[controller]/{studentId:guid}/upload-image")]
         public async Task<IActionResult> UploadImage([FromRoute] Guid studentId, IFormFile profileImage)
         {
-            //check if student exists
-            if (await _studentRepository.Exists(studentId))
+            var validExtensions = new List<string>
             {
-                //upload the image to local storage
-                var fileName = Guid.NewGuid() + Path.GetExtension(profileImage.FileName);
-                
-                var fileImagePath=  await _imageRepository.Upload(profileImage, fileName);
+                ".jpeg",
+                ".png",
+                "gif",
+                ".jpg"
+            };
+
+            if (profileImage != null && profileImage.Length>0)
+            {
+
+                var extension = Path.GetExtension(profileImage.FileName);
+
+                if (validExtensions.Contains(extension))
+                {
+                    //check if student exists
+                    if (await _studentRepository.Exists(studentId))
+                    {
+                        //upload the image to local storage
+                        var fileName = Guid.NewGuid() + Path.GetExtension(profileImage.FileName);
+
+                        var fileImagePath = await _imageRepository.Upload(profileImage, fileName);
 
 
-                //update the profile image path in the database
+                        //update the profile image path in the database
 
-              if( await  _studentRepository.UpdateProfileImage(studentId, fileImagePath))
-              {
-                  return Ok(fileImagePath);
-              }
+                        if (await _studentRepository.UpdateProfileImage(studentId, fileImagePath))
+                        {
+                            return Ok(fileImagePath);
+                        }
 
-              return StatusCode(StatusCodes.Status500InternalServerError, "Error uploading image");
+                        return StatusCode(StatusCodes.Status500InternalServerError, "Error uploading image");
+                    }
+
+                }
             }
+                
 
-            return NotFound();
+
+            return BadRequest("This is not valid Extension");
         }
     }
 
